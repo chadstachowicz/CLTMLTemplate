@@ -125,7 +125,6 @@ jsonschema-specifications==2023.7.1
 keyring==24.3.1
 kiwisolver==1.4.4
 lazy_loader==0.4
-lazy-object-proxy==1.10.0
 libmambapy==1.5.8
 linkify-it-py==2.0.0
 llvmlite==0.43.0
