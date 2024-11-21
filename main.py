@@ -41,7 +41,42 @@ model.eval()
 transform = transforms.Compose([transforms.Resize(128),
                                  transforms.CenterCrop(128),
                                  transforms.ToTensor()])
-classes = ('glioma_tumor', 'meningioma_tumor', 'no_tumor', 'pituitary_tumor')
+classes = ('Glioma', 'Meningioma', 'No Tumor', 'Pituitary Tumor')
+
+tumor_descriptions = [
+    {
+        "tumor": "Glioma",
+        "description": (
+            "Gliomas are a type of tumor that starts in the glial cells of the brain or spinal cord. "
+            "These tumors can be malignant or benign and are known for their rapid growth and potential to infiltrate nearby brain tissue. "
+            "Common symptoms include headaches, seizures, and neurological deficits depending on the tumor's location. It’s essential to consult a medical professional."
+        )
+    },
+    {
+        "tumor": "Meningioma",
+        "description": (
+            "Meningiomas are typically slow-growing tumors that arise from the meninges, the membranes that cover the brain and spinal cord. "
+            "Most meningiomas are benign, though some can be atypical or malignant. "
+            "Symptoms often develop gradually and may include headaches, vision changes, or seizures depending on the tumor’s size and location. It’s essential to consult a medical professional."
+        )
+    },
+    {
+        "tumor": "No Tumor",
+        "description": (
+            "No tumor indicates that no abnormal growth or mass has been detected in the brain. "
+            "This result suggests healthy brain tissue, but it’s essential to consult a medical professional "
+            "for further confirmation and analysis."
+        )
+    },
+    {
+        "tumor": "Pituitary Tumor",
+        "description": (
+            "Pituitary tumors develop in the pituitary gland, a small organ at the base of the brain that regulates vital hormones. "
+            "These tumors are often benign and categorized as functioning or non-functioning based on their effect on hormone production. "
+            "Symptoms may include hormonal imbalances, vision problems, or unexplained fatigue. It’s essential to consult a medical professional."
+        )
+    }
+]
 
 # Define input data schema
 class InputData(BaseModel):
@@ -67,4 +102,4 @@ async def predict(file: UploadFile = File(...)):
         outputs = model(transformed_image)
         _, predicted = torch.max(outputs, 1)
         print('Predicted: ',classes[predicted[0]])
-    return {"predictions": classes[predicted[0]]}
+    return {"prediction": classes[predicted[0]], "description": tumor_descriptions[predicted[0]]["description"]}
