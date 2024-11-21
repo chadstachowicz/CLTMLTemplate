@@ -2,5 +2,5 @@ fastapi==0.115.5
 Pillow==11.0.0
 pydantic==2.10.0
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch==2.5.1+cpu
+torch==2.3.1+cpu
 torchvision==0.20.1+cpu
