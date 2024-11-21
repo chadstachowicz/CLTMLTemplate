@@ -45,16 +45,6 @@ cloudpickle==3.0.0
 colorama==0.4.6
 colorcet==3.1.0
 comm==0.2.1
-conda==24.9.2
-conda-build==24.9.0
-conda-content-trust==0.2.0
-conda_index==0.5.0
-conda-libmamba-solver==24.9.0
-conda-pack==0.7.1
-conda-package-handling==2.3.0
-conda_package_streaming==0.10.0
-conda-repo-cli==1.0.114
-conda-token==0.5.0+1.g2209e04
 constantly==23.10.4
 contourpy==1.2.0
 cookiecutter==2.6.0
