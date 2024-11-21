@@ -1,4 +1,6 @@
 from fastapi import FastAPI, File, UploadFile
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from torchvision import datasets,transforms
 import torchvision
@@ -47,6 +49,11 @@ class InputData(BaseModel):
 
 # Initialize FastAPI app
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def read_root():
+    return FileResponse("static/index.html")
 
 @app.post("/predict/")
 async def predict(file: UploadFile = File(...)):
