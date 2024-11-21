@@ -15,24 +15,28 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-direction: column;
       background-color: #f8f9fa;
     }
-    .custom-file-upload {
-      display: inline-block;
-      cursor: pointer;
+    .content-wrapper {
+      display: flex;
+      align-items: left;
+      justify-content: center;
+      gap: 20px;
     }
-    .file-upload-wrapper {
-      position: relative;
+    .preview-box, .results-box {
+      width: 300px;
+      height: 300px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #fff;
+      text-align: center;
     }
     .file-input {
-      position: absolute;
-      top: 0;
-      left: 0;
-      opacity: 0;
-      cursor: pointer;
-      height: 100%;
-      width: 100%;
+      display: none;
     }
     .footer {
       position: absolute;
@@ -43,9 +47,14 @@
       background-color: #fff;
       border-top: 1px solid #dee2e6;
     }
-    .brain-logo {
+    img.brain-logo {
       width: 100px;
       height: auto;
+    }
+    img.preview-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
     }
   </style>
 </head>
@@ -65,8 +74,15 @@
   </div>
   <button type="button" class="btn btn-success mt-3" onclick="submitForm()">Submit</button>
 </div>
-<textarea id="resultText" class="form-control mt-4" rows="5" readonly placeholder="Results will appear here..."></textarea>
-    <!-- Names -->
+    <div class="content-wrapper mt-4">
+      <!-- Image Preview -->
+      <div class="preview-box">
+        <img id="imagePreview" src="" alt="Image Preview" class="preview-image" style="display: none;">
+        <span id="noImageText">No image selected</span>
+      </div>
+      <!-- Results -->
+      <textarea id="resultText" class="results-box" readonly placeholder="Results will appear here..."></textarea>
+    </div>    <!-- Names -->
     <p class="mt-4">By: Chad Stachowicz | Advisor: Dr. Helmy</p>
   </div>
 
@@ -84,37 +100,53 @@
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
   ></script>
   <script>
+    const fileInput = document.getElementById('fileInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const noImageText = document.getElementById('noImageText');
+    const resultText = document.getElementById('resultText');
+
+    fileInput.addEventListener('change', function () {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          imagePreview.src = e.target.result;
+          imagePreview.style.display = 'block';
+          noImageText.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+        resultText.value = `Selected file: ${file.name}\nReady to submit.`;
+      } else {
+        imagePreview.style.display = 'none';
+        noImageText.style.display = 'block';
+      }
+    });
+
     async function submitForm() {
-      const input = document.getElementById('fileInput');
-      if (input.files.length === 0) {
+      if (fileInput.files.length === 0) {
         alert('Please select a file.');
         return;
       }
       const formData = new FormData();
-      formData.append('file', input.files[0]);
+      formData.append('file', fileInput.files[0]);
 
       try {
         const response = await fetch('/predict', {
           method: 'POST',
-          body: formData
+          body: formData,
         });
 
         if (response.ok) {
           const result = await response.json();
-          document.getElementById('resultText').value = `Prediction: ${result.prediction}\nInformation: ${result.description}`;
+          resultText.value = `Prediction: ${result.prediction}\n\nInformation: ${result.description}`;
         } else {
-          document.getElementById('resultText').value = 'An error occurred during prediction.';
+          resultText.value = 'An error occurred during prediction.';
         }
       } catch (error) {
         console.error('Error:', error);
-        document.getElementById('resultText').value = 'An error occurred while connecting to the server.';
+        resultText.value = 'An error occurred while connecting to the server.';
       }
     }
-
-    document.getElementById("fileInput").addEventListener("change", function (e) {
-      const fileName = e.target.files[0] ? e.target.files[0].name : "No file chosen";
-      document.getElementById("resultText").value = `Selected file: ${fileName}\nReady to submit.`;
-    });
   </script>
 </body>
 </html>
