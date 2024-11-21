@@ -19,7 +19,7 @@
     }
     .content-wrapper {
       display: flex;
-      align-items: left;
+      align-items: center;
       justify-content: center;
       gap: 20px;
     }
@@ -56,10 +56,24 @@
       max-height: 100%;
       object-fit: contain;
     }
+    .dropdown-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 200px;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
+
   <div class="text-center">
+    <div class="dropdown-container mb-3">
+      <label for="modelDropdown" class="form-label">Select Model Version:</label>
+      <select id="modelDropdown" class="form-select">
+        <option value="">Loading models...</option>
+      </select>
+    </div>
 <!-- Brain Logo -->
 <img src="/static/brain.svg" alt="Brain Logo" class="brain-logo">
     <!-- Heading -->
@@ -104,6 +118,25 @@
     const imagePreview = document.getElementById('imagePreview');
     const noImageText = document.getElementById('noImageText');
     const resultText = document.getElementById('resultText');
+    const modelDropdown = document.getElementById('modelDropdown');
+
+    // Dynamically load models into the dropdown
+    async function loadModels() {
+      try {
+        const response = await fetch('/models');
+        if (response.ok) {
+          const models = await response.json();
+          modelDropdown.innerHTML = models
+            .map(model => `<option value="${model}">${model}</option>`)
+            .join('');
+        } else {
+          modelDropdown.innerHTML = '<option value="">Error loading models</option>';
+        }
+      } catch (error) {
+        console.error('Error loading models:', error);
+        modelDropdown.innerHTML = '<option value="">Error loading models</option>';
+      }
+    }
 
     fileInput.addEventListener('change', function () {
       const file = fileInput.files[0];
@@ -123,12 +156,13 @@
     });
 
     async function submitForm() {
-      if (fileInput.files.length === 0) {
-        alert('Please select a file.');
+      if (fileInput.files.length === 0 || !modelDropdown.value) {
+        alert('Please select a file and a model.');
         return;
       }
       const formData = new FormData();
       formData.append('file', fileInput.files[0]);
+      formData.append('model', modelDropdown.value);
 
       try {
         const response = await fetch('/predict', {
@@ -147,6 +181,9 @@
         resultText.value = 'An error occurred while connecting to the server.';
       }
     }
+
+    // Load models on page load
+    loadModels();
   </script>
 </body>
 </html>

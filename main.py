@@ -1,9 +1,11 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from torchvision import datasets,transforms
 import torchvision
+import json
+import os
 import io
 from PIL import Image
 import torch
@@ -103,3 +105,17 @@ async def predict(file: UploadFile = File(...)):
         _, predicted = torch.max(outputs, 1)
         print('Predicted: ',classes[predicted[0]])
     return {"prediction": classes[predicted[0]], "description": tumor_descriptions[predicted[0]]["description"]}
+
+@app.get("/models")
+async def list_models():
+    models_dir = "./model"  # Replace with the actual path to your models directory
+    try:
+        # List all files in the directory
+        files = os.listdir(models_dir)
+        # Filter out directories, if any
+        model_files = [file for file in files if os.path.isfile(os.path.join(models_dir, file))]
+        return JSONResponse(content=model_files)
+    except FileNotFoundError:
+        return JSONResponse(content={"error": "Models directory not found."}, status_code=404)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
