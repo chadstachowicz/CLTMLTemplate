@@ -139,7 +139,6 @@ kiwisolver==1.4.4
 lazy_loader==0.4
 lazy-object-proxy==1.10.0
 lckr_jupyterlab_variableinspector==3.1.0
-libarchive-c==5.1
 libmambapy==1.5.8
 linkify-it-py==2.0.0
 llvmlite==0.43.0
