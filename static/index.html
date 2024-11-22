@@ -10,84 +10,113 @@
     rel="stylesheet"
   >
   <style>
-    body {
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #f8f9fa;
-    }
-    .content-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-    }
-    .preview-box, .results-box {
-      width: 300px;
-      height: 300px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #fff;
-      text-align: center;
-    }
-    .file-input {
-      display: none;
-    }
-    .footer {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      text-align: center;
-      padding: 1rem 0;
-      background-color: #fff;
-      border-top: 1px solid #dee2e6;
-    }
-    img.brain-logo {
-      width: 100px;
-      height: auto;
-    }
-    img.preview-image {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
-    .dropdown-container {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 200px;
-      text-align: left;
-    }
+html, body {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+body {
+  background-color: #f8f9fa;
+  align-items: center; /* Center the content horizontally */
+}
+
+.text-center {
+  flex: 1; /* Ensure main content takes up available space */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%; /* Ensure it spans the full width */
+}
+
+.content-wrapper {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.preview-box, .results-box {
+  width: 300px;
+  height: 300px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  text-align: center;
+}
+
+.footer {
+  width: 100%;
+  text-align: center;
+  padding: 1rem 0;
+  background-color: #fff;
+  border-top: 1px solid #dee2e6;
+  margin-top: auto; /* Push footer to the bottom */
+}
+
+img.brain-logo {
+  width: 100px;
+  height: auto;
+}
+
+img.preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.file-input {
+  display: none;
+}
+
+.dropdown-container {
+  position: absolute; /* Keeps it positioned relative to the page */
+  top: 20px;          /* Aligns dropdown at the top */
+  right: 20px;        /* Aligns dropdown to the right */
+}
+
+@media (max-width: 768px) {
+  .dropdown-container {
+    position: static; /* Makes it flow naturally in responsive layout */
+    width: 100%;      /* Full width on smaller screens */
+    margin-bottom: 20px; /* Adds spacing below */
+    text-align: center;  /* Centers the dropdown */
+  }
+}
+
   </style>
 </head>
 <body>
 
-  <div class="text-center">
+ <div class="text-center">
     <div class="dropdown-container mb-3">
       <label for="modelDropdown" class="form-label">Select Model Version:</label>
       <select id="modelDropdown" class="form-select">
         <option value="">Loading models...</option>
       </select>
     </div>
-<!-- Brain Logo -->
-<img src="/static/brain.svg" alt="Brain Logo" class="brain-logo">
+    <!-- Brain Logo -->
+   <img src="/static/brain.svg" alt="Brain Logo" class="brain-logo">
     <!-- Heading -->
     <h2 class="mt-3">Upload an MRI of a brain</h2>
     <p>Note: This model is for predictions only and should not be used for medical diagnosis.</p>
     <!-- Form -->
-<!-- Form -->
-<div>
-  <div class="file-upload-wrapper mt-4">
+    <!-- Form -->
+   <div>
+     <div class="file-upload-wrapper mt-4">
     <button class="btn btn-primary custom-file-upload" type="button" onclick="document.getElementById('fileInput').click();">Choose File</button>
     <input type="file" name="file" class="file-input" id="fileInput">
-  </div>
-  <button type="button" class="btn btn-success mt-3" onclick="submitForm()">Submit</button>
-</div>
+   </div>
+   <button type="button" class="btn btn-success mt-3" onclick="submitForm()">Submit</button>
+    </div>
     <div class="content-wrapper mt-4">
       <!-- Image Preview -->
       <div class="preview-box">
