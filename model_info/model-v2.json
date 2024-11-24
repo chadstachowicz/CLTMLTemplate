@@ -1,9 +1,9 @@
 {
-    "model": {
+      "name": "model-v2",
       "accuracy": 71,
-      "endpoint": "https://text.example.com/predict",
-      "input_neuron": {
-        "file": "image (128x128)"
+      "endpoint": "http://127.0.0.1:8000/predict",
+      "input_neurons": {
+        "file": "file"
       },
       "output_neuron": [
         "pituitary_tumor",
@@ -17,5 +17,4 @@
         "brain mri"
       ],
       "neuron_code": 123123
-    }
-  }
+}

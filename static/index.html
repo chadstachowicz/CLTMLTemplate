@@ -99,6 +99,7 @@ img.preview-image {
   right: 20px;        /* Aligns dropdown to the right */
 }
 
+
 @media (max-width: 768px) {
   .dropdown-container {
     position: static; /* Makes it flow naturally in responsive layout */
@@ -106,6 +107,17 @@ img.preview-image {
     margin-bottom: 20px; /* Adds spacing below */
     text-align: center;  /* Centers the dropdown */
   }
+}
+
+#modalBodyContent {
+  display: block; /* Ensure it remains visible */
+  text-align: left; /* Default alignment for readability */
+}
+
+.modal-body {
+
+  word-wrap: break-word; /* Break long words */
+  overflow-wrap: break-word; /* Ensure word wrapping */
 }
 
   </style>
@@ -126,15 +138,12 @@ img.preview-image {
     <!-- Heading -->
     <h2 class="mt-3">Upload an MRI of a brain</h2>
     <p>Note: This model is for predictions only and should not be used for medical diagnosis.</p>
-    <!-- Form -->
-    <!-- Form -->
-   <div>
-     <div class="file-upload-wrapper mt-4">
-    <button class="btn btn-primary custom-file-upload" type="button" onclick="document.getElementById('fileInput').click();">Choose File</button>
-    <input type="file" name="file" class="file-input" id="fileInput">
-   </div>
-   <button type="button" class="btn btn-success mt-3" onclick="submitForm()">Submit</button>
-    </div>
+    <div id="main"></div>
+
+    <div>
+
+   <button type="button" class="btn btn-primary" onclick="submitForm()">Submit</button>
+    
     <div class="content-wrapper mt-4">
       <!-- Image Preview -->
       <div class="preview-box">
@@ -179,7 +188,6 @@ img.preview-image {
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
   ></script>
   <script>
-    const fileInput = document.getElementById('fileInput');
     const imagePreview = document.getElementById('imagePreview');
     const noImageText = document.getElementById('noImageText');
     const resultText = document.getElementById('resultText');
@@ -187,6 +195,33 @@ img.preview-image {
     const infoModalLabel = document.getElementById('infoModalLabel');
     const modalBodyContent = document.getElementById('modalBodyContent');
     const infoIcon = document.getElementById('infoIcon');
+
+    async function getModel(name){
+      try {
+        const response = await fetch(`/get-model?model_name=${name}`);
+        if (!response.ok) {
+          throw new Error(`Error fetching data for model: ${name}`);
+        }
+
+        const data = await response.json();
+
+        // Extract and display the data
+        const model = data.model_data; // Assuming the format matches the example 
+        return model
+    } catch (error) {
+
+    }}
+
+    modelDropdown.addEventListener("change", async (event) => {
+      const selectedValue = event.target.value;
+      try {
+      const model = await getModel(selectedValue);
+      console.log(model);
+          renderForm(model,"main")
+         } catch (error) {
+      console.error("Failed to fetch model data:", error);
+      }
+    });
 
     // Dynamically load models into the dropdown
     async function loadModels() {
@@ -197,6 +232,8 @@ img.preview-image {
           modelDropdown.innerHTML = models
             .map(model => `<option value="${model}">${model}</option>`)
             .join('');
+            const model = await getModel(models[0]);
+            renderForm(model,"main")
         } else {
           modelDropdown.innerHTML = '<option value="">Error loading models</option>';
         }
@@ -206,25 +243,9 @@ img.preview-image {
       }
     }
 
-    fileInput.addEventListener('change', function () {
-      const file = fileInput.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          imagePreview.src = e.target.result;
-          imagePreview.style.display = 'block';
-          noImageText.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-        resultText.value = `Selected file: ${file.name}\nReady to submit.`;
-      } else {
-        imagePreview.style.display = 'none';
-        noImageText.style.display = 'block';
-      }
-    });
 
     async function submitForm() {
-      if (fileInput.files.length === 0 || !modelDropdown.value) {
+      if (document.getElementById('fileInput').files.length === 0 || !modelDropdown.value) {
         alert('Please select a file and a model.');
         return;
       }
@@ -269,13 +290,14 @@ img.preview-image {
         const data = await response.json();
 
         // Extract and display the data
-        const model = data.model_data.model; // Assuming the format matches the example
-        console.log(data);
+        const model = data.model_data; // Assuming the format matches the example
+       // renderForm(model, "main");
+     
         infoModalLabel.textContent = `Information About: ${selectedValue}`;
         modalBodyContent.innerHTML = `
           <p><strong>Accuracy:</strong> ${model.accuracy}%</p>
           <p><strong>Endpoint:</strong> <a href="${model.endpoint}" target="_blank">${model.endpoint}</a></p>
-          <p><strong>Input Neuron:</strong> ${model.input_neuron.file}</p>
+          <p><strong>Input Neuron:</strong> ${JSON.stringify(model.input_neurons)}</p>
           <p><strong>Output Neurons:</strong> ${model.output_neuron.join(", ")}</p>
           <p><strong>Keywords:</strong> ${model.keywords.join(", ")}</p>
           <p><strong>Neuron Code:</strong> ${model.neuron_code}</p>
@@ -290,5 +312,126 @@ img.preview-image {
     // Load models on page load
     loadModels();
   </script>
+
+<script>
+  // JSON structure
+  const formData = {
+    "fields": {
+      "name": "string",
+      "image": "file",
+      "states": ["NC", "OH"],
+      "mobile": "string"
+    }
+  };
+
+  // Function to dynamically render a form from JSON
+  function renderForm(json, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+    if (!container) {
+      console.error(`Container with ID "${containerId}" not found.`);
+      return;
+    }
+
+    // Create a form element
+    const form = document.createElement("form");
+    form.setAttribute("action", "/predict?model_name="+json.name);
+    form.setAttribute("method", "POST");
+    form.setAttribute("enctype", "multipart/form-data");
+    form.classList.add("needs-validation");
+
+    // Add a form title
+    const formTitle = document.createElement("h4");
+    //formTitle.textContent = "Dynamic Form";
+    formTitle.classList.add("text-center", "mb-4");
+    form.appendChild(formTitle);
+
+    // Loop through JSON fields and create corresponding inputs
+    for (const [key, value] of Object.entries(json.input_neurons)) {
+      // Create a Bootstrap form group
+      const formGroup = document.createElement("div");
+      formGroup.classList.add("mb-3");
+
+      const label = document.createElement("label");
+      label.setAttribute("for", key);
+      label.textContent = `${key.charAt(0).toUpperCase() + key.slice(1)}:`;
+      label.classList.add("form-label");
+
+      let input;
+
+      // Handle different field types
+      if (value === "string") {
+        input = document.createElement("input");
+        input.setAttribute("type", "text");
+        input.setAttribute("id", key);
+        input.setAttribute("name", key);
+        input.setAttribute("placeholder", `Enter your ${key}`);
+        input.classList.add("form-control");
+        input.required = true;
+      } else if (value === "file") {
+        input = document.createElement("input");
+        input.setAttribute("type", "file");
+        input.setAttribute("id", key + "Input");
+        input.setAttribute("name", key);
+        input.setAttribute("accept", "image/*");
+        input.classList.add("form-control");
+        input.required = true;
+      } else if (Array.isArray(value)) {
+        input = document.createElement("select");
+        input.setAttribute("id", key);
+        input.setAttribute("name", key);
+        input.classList.add("form-select");
+        input.required = true;
+
+        // Add options to the dropdown
+        value.forEach((optionValue) => {
+          const option = document.createElement("option");
+          option.setAttribute("value", optionValue);
+          option.textContent = optionValue;
+          input.appendChild(option);
+        });
+      } else {
+        console.warn(`Unsupported field type for key "${key}"`);
+        continue;
+      }
+
+      // Append label and input to the form group
+      formGroup.appendChild(label);
+      formGroup.appendChild(input);
+
+      // Append the form group to the form
+      form.appendChild(formGroup);
+    }
+
+    // Add a submit button to the form
+    // const submitButton = document.createElement("button");
+    // submitButton.setAttribute("type", "submit");
+    // submitButton.textContent = "Submit";
+    // submitButton.classList.add("btn", "btn-primary", "w-100");
+    // form.appendChild(submitButton);
+
+    // Insert the form into the container
+    container.appendChild(form);
+    document.getElementById('fileInput').addEventListener('change', function () {
+       const file = fileInput.files[0];
+       if (file) {
+         const reader = new FileReader();
+         reader.onload = function (e) {
+           imagePreview.src = e.target.result;
+           imagePreview.style.display = 'block';
+           noImageText.style.display = 'none';
+         };
+         reader.readAsDataURL(file);
+         resultText.value = `Selected file: ${file.name}\nReady to submit.`;
+       } else {
+         imagePreview.style.display = 'none';
+         noImageText.style.display = 'block';
+       }
+     });
+  }
+
+  // Call the function to render the form
+  //renderForm(formData, "main");
+</script>
 </body>
 </html>
