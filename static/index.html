@@ -230,10 +230,8 @@ img.preview-image {
       }
       const formData = new FormData();
       formData.append('file', fileInput.files[0]);
-      formData.append('model', modelDropdown.value);
-
       try {
-        const response = await fetch('/predict', {
+        const response = await fetch('/predict?model_name=' + modelDropdown.value, {
           method: 'POST',
           body: formData,
         });
