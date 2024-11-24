@@ -1,0 +1,21 @@
+{
+    "model": {
+      "accuracy": 70,
+      "endpoint": "https://text.example.com/predict",
+      "input_neuron": {
+        "file": "image (128x128)"
+      },
+      "output_neuron": [
+        "pituitary_tumor",
+        "no_tumor",
+        "glioma_tumor",
+        "meningioma_tumor"
+      ],
+      "keywords": [
+        "brain tumor",
+        "brain tumor prediction",
+        "brain mri"
+      ],
+      "neuron_code": 123123
+    }
+  }
