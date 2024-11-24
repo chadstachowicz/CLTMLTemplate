@@ -254,10 +254,41 @@ img.preview-image {
     }
     // Add event listener to ensure the function runs
     infoIcon.addEventListener('click', () => {
+      updateModalContent()
+    });
+      async function updateModalContent() {
       const selectedValue = modelDropdown.value || "No model selected";
       infoModalLabel.textContent = `Information About: ${selectedValue}`;
       modalBodyContent.textContent = `Details about the model "${selectedValue}" will appear here.`;
-    });
+
+
+      try {
+        const response = await fetch(`/get-model?model_name=${selectedValue}`);
+        if (!response.ok) {
+          throw new Error(`Error fetching data for model: ${selectedValue}`);
+        }
+
+        const data = await response.json();
+
+        // Extract and display the data
+        const model = data.model_data.model; // Assuming the format matches the example
+        console.log(data);
+        infoModalLabel.textContent = `Information About: ${selectedValue}`;
+        modalBodyContent.innerHTML = `
+          <p><strong>Accuracy:</strong> ${model.accuracy}%</p>
+          <p><strong>Endpoint:</strong> <a href="${model.endpoint}" target="_blank">${model.endpoint}</a></p>
+          <p><strong>Input Neuron:</strong> ${model.input_neuron.file}</p>
+          <p><strong>Output Neurons:</strong> ${model.output_neuron.join(", ")}</p>
+          <p><strong>Keywords:</strong> ${model.keywords.join(", ")}</p>
+          <p><strong>Neuron Code:</strong> ${model.neuron_code}</p>
+        `;
+      } catch (error) {
+        console.error(error);
+        infoModalLabel.textContent = "Error";
+        modalBodyContent.textContent = `Failed to fetch details for model "${selectedValue}". Please try again later.`;
+      }
+
+    }
     // Load models on page load
     loadModels();
   </script>

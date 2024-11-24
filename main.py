@@ -89,7 +89,7 @@ class InputData(BaseModel):
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 # Directory where model JSON files are stored
-MODEL_DIRECTORY = "model"
+MODEL_DIRECTORY = "model_info"
 @app.get("/")
 def read_root():
     return FileResponse("static/index.html")
@@ -135,7 +135,7 @@ async def get_model(model_name: str):
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Error decoding JSON. Ensure the file is valid JSON.")
 
-    return {"model_name": model_name, "model_data": model_data}
+    return {"model_data": model_data}
 
 @app.get("/models")
 async def list_models():
