@@ -184,9 +184,53 @@ img.preview-image {
   color: #6c757d !important;
 }
 
+/* Loading Spinner Styles */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 99999;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #0d6efd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 20px;
+  color: #0d6efd;
+  font-weight: 500;
+  font-size: 1.2rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
   </style>
 </head>
 <body>
+
+    <!-- Add loading overlay -->
+    <div class="loading-overlay">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Analyzing MRI scan...</div>
+        </div>
+    </div>
 
  <div class="text-center">
     <div class="dropdown-container mb-3"> 
@@ -205,8 +249,8 @@ img.preview-image {
     <div id="main"></div>
 
     <div>
-
-   <button type="button" class="btn btn-primary" onclick="submitForm()">Submit</button>
+      <button type="button" class="btn btn-primary" id="submitButton" onclick="submitForm()">Submit</button>
+    </div>
     
     <div class="content-wrapper mt-4">
       <!-- Image Preview -->
@@ -360,6 +404,14 @@ img.preview-image {
         alert('Please select a file and a model.');
         return;
       }
+
+      // Disable submit button and show loading overlay
+      const submitButton = document.getElementById('submitButton');
+      const loadingOverlay = document.querySelector('.loading-overlay');
+      submitButton.disabled = true;
+      loadingOverlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+
       const formData = new FormData();
       formData.append('file', fileInput.files[0]);
       try {
@@ -389,6 +441,11 @@ img.preview-image {
       } catch (error) {
         console.error('Error:', error);
         resultText.value = 'An error occurred while connecting to the server.';
+      } finally {
+        // Re-enable submit button and hide loading overlay
+        submitButton.disabled = false;
+        loadingOverlay.style.display = 'none';
+        document.body.style.overflow = '';
       }
     }
     function showAlert() {

@@ -101,7 +101,7 @@ async def get_openai_analysis(prediction: str, base_description: str, image_byte
                     ]
                 }
             ],
-            max_tokens=1000
+            max_tokens=500
         )
         return response.choices[0].message.content
     except Exception as e:
