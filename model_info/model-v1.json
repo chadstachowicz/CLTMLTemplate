@@ -1,6 +1,6 @@
 {
     "name": "model-v1",
-    "accuracy": 70,
+    "accuracy": 94,
     "endpoint": "http://127.0.0.1:8000/predict",
     "input_neurons": {
       "file": "file"

@@ -120,6 +120,70 @@ img.preview-image {
   overflow-wrap: break-word; /* Ensure word wrapping */
 }
 
+/* Analysis Modal Styling */
+#analysisModal .modal-dialog {
+  max-width: 1000px;
+}
+
+#analysisModal .card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: none;
+  margin-bottom: 1rem;
+}
+
+#analysisModal .card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1rem;
+}
+
+#analysisModal .card-header h6 {
+  color: #495057;
+  font-weight: 600;
+  margin: 0;
+}
+
+#analysisModal .card-body {
+  padding: 1.5rem;
+}
+
+#analysisModal .img-fluid {
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+#analysisPrediction {
+  color: #0d6efd;
+  font-weight: 600;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 0.5rem;
+}
+
+#analysisDescription, #analysisDetails {
+  line-height: 1.6;
+  color: #495057;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+}
+
+#analysisDetails {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+  border-left: 4px solid #0d6efd;
+}
+
+#analysisModal h6 {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+#analysisModal .text-muted {
+  color: #6c757d !important;
+}
+
   </style>
 </head>
 <body>
@@ -166,6 +230,53 @@ img.preview-image {
           </div>
           <div class="modal-body">
             <p id="modalBodyContent">Details about the selected model will appear here.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analysis Modal -->
+    <div class="modal fade" id="analysisModal" tabindex="-1" aria-labelledby="analysisModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="analysisModalLabel">MRI Analysis</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="mb-0">MRI Image</h6>
+                  </div>
+                  <div class="card-body">
+                    <img id="analysisImage" src="" alt="MRI Analysis" class="img-fluid">
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-header">
+                    <h6 class="mb-0">Prediction</h6>
+                  </div>
+                  <div class="card-body">
+                    <h5 id="analysisPrediction" class="text-primary mb-3"></h5>
+                    <div class="mb-4">
+                      <h6>Basic Information</h6>
+                      <p id="analysisDescription" class="text-muted"></p>
+                    </div>
+                    <div>
+                      <h6>Detailed Analysis</h6>
+                      <p id="analysisDetails" class="text-muted"></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -259,7 +370,19 @@ img.preview-image {
 
         if (response.ok) {
           const result = await response.json();
-          resultText.value = `Prediction: ${result.prediction}\n\nInformation: ${result.description}`;
+          
+          // Update the analysis modal with the results
+          document.getElementById('analysisImage').src = imagePreview.src;
+          document.getElementById('analysisPrediction').textContent = `Prediction: ${result.prediction}`;
+          document.getElementById('analysisDescription').textContent = result.description;
+          document.getElementById('analysisDetails').textContent = result.detailed_analysis;
+          
+          // Show the analysis modal
+          const analysisModal = new bootstrap.Modal(document.getElementById('analysisModal'));
+          analysisModal.show();
+          
+          // Update the result textarea with just the basic info
+          resultText.value = `Prediction: ${result.prediction}\n\nBasic Information: ${result.description}`;
         } else {
           resultText.value = 'An error occurred during prediction.';
         }

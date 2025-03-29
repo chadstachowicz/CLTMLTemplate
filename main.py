@@ -13,14 +13,18 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from model import TumorClassifier
+from openai import OpenAI
+import base64
 
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 model = TumorClassifier()
 model.load_state_dict(torch.load("model/model-v1"))
 model.eval()
 
-transform = transforms.Compose([transforms.Resize(128),
-                                 transforms.CenterCrop(128),
+transform = transforms.Compose([transforms.Resize(256),
+                                 transforms.CenterCrop(224),
                                  transforms.ToTensor()])
 classes = ('Glioma', 'Meningioma', 'No Tumor', 'Pituitary Tumor')
 
@@ -30,7 +34,7 @@ tumor_descriptions = [
         "description": (
             "Gliomas are a type of tumor that starts in the glial cells of the brain or spinal cord. "
             "These tumors can be malignant or benign and are known for their rapid growth and potential to infiltrate nearby brain tissue. "
-            "Common symptoms include headaches, seizures, and neurological deficits depending on the tumor's location. It’s essential to consult a medical professional."
+            "Common symptoms include headaches, seizures, and neurological deficits depending on the tumor's location. It's essential to consult a medical professional."
         )
     },
     {
@@ -38,14 +42,14 @@ tumor_descriptions = [
         "description": (
             "Meningiomas are typically slow-growing tumors that arise from the meninges, the membranes that cover the brain and spinal cord. "
             "Most meningiomas are benign, though some can be atypical or malignant. "
-            "Symptoms often develop gradually and may include headaches, vision changes, or seizures depending on the tumor’s size and location. It’s essential to consult a medical professional."
+            "Symptoms often develop gradually and may include headaches, vision changes, or seizures depending on the tumor's size and location. It's essential to consult a medical professional."
         )
     },
     {
         "tumor": "No Tumor",
         "description": (
             "No tumor indicates that no abnormal growth or mass has been detected in the brain. "
-            "This result suggests healthy brain tissue, but it’s essential to consult a medical professional "
+            "This result suggests healthy brain tissue, but it's essential to consult a medical professional "
             "for further confirmation and analysis."
         )
     },
@@ -54,7 +58,7 @@ tumor_descriptions = [
         "description": (
             "Pituitary tumors develop in the pituitary gland, a small organ at the base of the brain that regulates vital hormones. "
             "These tumors are often benign and categorized as functioning or non-functioning based on their effect on hormone production. "
-            "Symptoms may include hormonal imbalances, vision problems, or unexplained fatigue. It’s essential to consult a medical professional."
+            "Symptoms may include hormonal imbalances, vision problems, or unexplained fatigue. It's essential to consult a medical professional."
         )
     }
 ]
@@ -68,6 +72,42 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 # Directory where model JSON files are stored
 MODEL_DIRECTORY = "model_info"
+
+async def get_openai_analysis(prediction: str, base_description: str, image_bytes: bytes) -> str:
+    try:
+        # Convert image bytes to base64
+        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a medical AI assistant specializing in brain tumor analysis. Provide detailed, accurate, and helpful information while always emphasizing the importance of consulting medical professionals. Focus on visible characteristics in the MRI that support the prediction."
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Given this brain MRI scan and knowing it's predicted to be a {prediction}, can you provide a detailed analysis of why this might be the case? Here's the basic description we have: {base_description}"
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{image_base64}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=1000
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"Error getting OpenAI analysis: {str(e)}")
+        return "Unable to get additional analysis at this time."
+
 @app.get("/")
 def read_root():
     return FileResponse("static/index.html")
@@ -86,9 +126,18 @@ async def predict(file: UploadFile = File(...), model_name: str = Query(..., des
         outputs = model(transformed_image)
         _, predicted = torch.max(outputs, 1)
         print('Predicted: ',classes[predicted[0]])
-    return {"prediction": classes[predicted[0]], "description": tumor_descriptions[predicted[0]]["description"]}
-
-
+    
+    prediction = classes[predicted[0]]
+    base_description = tumor_descriptions[predicted[0]]["description"]
+    
+    # Get additional analysis from OpenAI with the image
+    openai_analysis = await get_openai_analysis(prediction, base_description, image_bytes)
+    
+    return {
+        "prediction": prediction,
+        "description": base_description,
+        "detailed_analysis": openai_analysis
+    }
 
 @app.get("/get-model")
 async def get_model(model_name: str):
